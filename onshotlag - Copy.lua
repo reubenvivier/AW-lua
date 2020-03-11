@@ -44,7 +44,7 @@ local OSFL_ref = gui.Reference( "MISC" )
 local OSFL_menuTab = gui.Tab( OSFL_ref, "osflmenu.tab", "On Shot Fake Lag" )
 local OSFL_groupbox = gui.Groupbox( OSFL_menuTab, "OSFL_groupbox", 15, 15, 200, 100 )
 local OSFL_enable = gui.Checkbox( OSFL_groupbox, "OSFL_enable", "Enable", false )
-local OSFL_value = gui.Slider( OSFL_groupbox, "OSFL_value", "Fakelag amount:", 1 ,2, 17 )
+local OSFL_value = gui.Slider( OSFL_groupbox, "OSFL_value", "Fakelag amount", 1 ,2, 17 )
 local OSFL_delay = gui.Slider( OSFL_groupbox, "OSFL_delay", "Delay time in seconds", 0.05, , 1)
 
 	-- check if player is shooting 
@@ -59,7 +59,7 @@ local OSFL_delay = gui.Slider( OSFL_groupbox, "OSFL_delay", "Delay time in secon
 				
 				-- after user defined delay seconds, returns fakelag factor value to 2 ticks/off
 				timer.Simple(OSFL_delay:GetValue(), function()gui.SetValue( "misc.fakelag.factor", 2 )end)
-
+			 
 			end
 		end
 	end
