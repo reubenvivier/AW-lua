@@ -1,7 +1,7 @@
 
 -- Gui menubox 
-local ref = gui.Tab(gui.Reference("Ragebot"), "onshotfakelag.settings", "OSFL")
-local groupbox = gui.Groupbox( ref, "Settings", 375, 20, 220, 400 )
+local ref = gui.Tab(gui.Reference("Misc"), "onshotfakelag.settings", "OSFL")
+local groupbox = gui.Groupbox( ref, "Settings", 15, 15, 200, 100 )
 	
 local Enable_key = gui.Checkbox( groupbox, "Enable_key", "Enable", false )
 local value = gui.Slider( groupbox, "fakelag_value", "Fakelag amount", 3 , 0, 17)
@@ -55,7 +55,7 @@ local function on_shot( event )
 
 
 		-- check if player is shooting 
-	--	if Enable_key:gui.GetValue() == true then
+		if gui.GetValue("misc.onshotfakelag.settings.Enable_key") == true then
 			if uid == local_player_index then
 				
 				-- turns on only when shooting to choke onshot packets
@@ -65,11 +65,11 @@ local function on_shot( event )
 					gui.SetValue( "misc.fakelag.factor", value:GetValue())
 					
 					-- after user defined delay seconds, returns fakelag factor value to 2 ticks/off
-					timer.Simple(delay:GetValue(), function()gui.SetValue( "misc.fakelag.factor", 2 )end)
+					timer.Simple("delay", gui.GetValue("misc.onshotfakelag.settings.shot_delay"), function()gui.SetValue( "misc.fakelag.factor", 3 )end)
 				 
 				end
 			end
-	--	end
+		end
 	end
 	
 	
