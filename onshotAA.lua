@@ -73,11 +73,43 @@ function lagsync(cmd)
         
 end
 
-function onfire( event )
-	
+local function onfire( event )
+    
+    local timer = timer or {}
+    local timers = {}
     local event_name = event:GetName()
     local local_player_index = client.GetLocalPlayerIndex()
     local uid = client.GetPlayerIndexByUserID(event:GetInt( "userid" ))
+
+    function timer.Exists(name)
+	    for k,v in pairs(timers) do
+		    if name == v.name then
+		    	return true
+		    end
+	    end
+        return false
+    end
+	
+    function timer.Simple(name, delay, func)
+	    if not timer.Exists(name) then
+	    	table.insert(timers, {type = "Simple", name = name, func = func, lastTime = globals.CurTime() + delay})
+	    end
+    end
+	
+    function timer.Tick()
+	    for k, v in pairs(timers or {}) do
+		    if not v.pause then
+			    if v.type == "Simple" then
+			    	if globals.CurTime() >= v.lastTime then
+				    	v.func()
+				    	table.remove(timers, k)
+			    	end           
+		    	end
+	    	end
+    	end
+    end
+
+    callbacks.Register( "Draw", "timerTick", timer.Tick);
 
     if flenable:GetValue() == true then
 	    if uid == local_player_index then
@@ -86,38 +118,7 @@ function onfire( event )
 				timer.Simple("delay", fldelay:GetValue(), function()gui.SetValue( "misc.fakelag.factor", flbaseamount:GetValue())end)
 			end
 		end
-	end
-end
-
-local timer = timer or {}
-local timers = {}
-	
-function timer.Exists(name)
-	for k,v in pairs(timers) do
-		if name == v.name then
-			return true
-		end
-	end
-    return false
-end
-	
-function timer.Simple(name, delay, func)
-	if not timer.Exists(name) then
-		table.insert(timers, {type = "Simple", name = name, func = func, lastTime = globals.CurTime() + delay})
-	end
-end
-	
-function timer.Tick()
-	for k, v in pairs(timers or {}) do
-		if not v.pause then
-			if v.type == "Simple" then
-				if globals.CurTime() >= v.lastTime then
-					v.func()
-					table.remove(timers, k)
-				end           
-			end
-		end
-	end
+    end 
 end
 
 DrawUI();
@@ -127,4 +128,3 @@ callbacks.Register("Draw",KeyPressHandler);
 callbacks.Register("Draw",GUIHandler);
 callbacks.Register( "FireGameEvent", onfire );
 client.AllowListener( "weapon_fire" );
-callbacks.Register( "Draw", "timerTick", timer.Tick);
