@@ -25,6 +25,14 @@ function DrawUI()
     flspikeamount = gui.Slider(flgroupbox, "fakelag_spike", "Spike Amount", 3, 3, 17)
     fldelay = gui.Slider( flgroupbox, "fl_delay", "Hold Time (S)",0, 0, 1, 0.01)
    
+    dtgroupbox = gui.Groupbox( window, "Double Tap", 240, 260, 200, 200 )
+    dtsettings = gui.Combobox( dtgroupbox, "dt_switch1", "DT Base Setting", "Off", "Shift" , "Rapid", "Fast Recharge")
+    dtsetting2 = gui.Combobox( dtgroupbox, "dt_switch2", "DT Key Setting", "Off", "Shift" , "Rapid", "Fast Recharge")
+    dtkeybox = gui.Keybox( dtgroupbox, "dt_key", "Doubletap Switch Key", 0)
+    
+
+
+
     window:SetOpenKey(45);
 
 end
@@ -121,6 +129,33 @@ local function onfire( event )
     end 
 end
 
+
+
+local function dt_key_switch()
+    local dt_key = gui.GetValue("aawindow.dt_key")
+    local dt_set1 = gui.GetValue("aawindow.dt_switch1")
+    local dt_set2 = gui.GetValue("aawindow.dt_switch2")
+    if input.IsButtonDown(dt_key) then
+        gui.SetValue("rbot.accuracy.weapon.pistol.doublefire", dt_set2)
+        gui.SetValue("rbot.accuracy.weapon.hpistol.doublefire", dt_set2)
+        gui.SetValue("rbot.accuracy.weapon.smg.doublefire", dt_set2)
+        gui.SetValue("rbot.accuracy.weapon.asniper.doublefire", dt_set2)
+        gui.SetValue("rbot.accuracy.weapon.rifle.doublefire", dt_set2)
+        gui.SetValue("rbot.accuracy.weapon.shotgun.doublefire", dt_set2)
+        gui.SetValue("rbot.accuracy.weapon.lmg.doublefire", dt_set2)
+    else
+        gui.SetValue("rbot.accuracy.weapon.pistol.doublefire", dt_set1)
+        gui.SetValue("rbot.accuracy.weapon.hpistol.doublefire", dt_set1)
+        gui.SetValue("rbot.accuracy.weapon.smg.doublefire", dt_set1)
+        gui.SetValue("rbot.accuracy.weapon.asniper.doublefire", dt_set1)
+        gui.SetValue("rbot.accuracy.weapon.rifle.doublefire", dt_set1)
+        gui.SetValue("rbot.accuracy.weapon.shotgun.doublefire", dt_set1)
+        gui.SetValue("rbot.accuracy.weapon.lmg.doublefire", dt_set1)
+    end
+end
+
+
+
 DrawUI();
 callbacks.Register("CreateMove",lagsync);
 callbacks.Register("Draw",YawHandler);
@@ -128,3 +163,4 @@ callbacks.Register("Draw",KeyPressHandler);
 callbacks.Register("Draw",GUIHandler);
 callbacks.Register( "FireGameEvent", onfire );
 client.AllowListener( "weapon_fire" );
+callbacks.Register( "Draw", dt_key_switch);
