@@ -3,47 +3,56 @@ local switch = false
 
 function DrawUI()
     
+    -- Main window
     screenX,screenY = draw.GetScreenSize()
     window = gui.Window("aawindow","AA Window",screenX/2,screenY/2,500,800)
     
+    -- Base aa gui groupbox
     groupbox_yaw = gui.Groupbox(window,"Base AA",20,15,200,200)
     invert_key = gui.Keybox(groupbox_yaw,"invert_key","Inverter Key",0)
     yaw_amount = gui.Slider(groupbox_yaw,"yaw_offset","Yaw Offset",0,-180,180)
     fake_amount = gui.Slider(groupbox_yaw,"fake_amount","Fake Amount (%)",100,0,100)
     
+    -- Lagsync gui groupbox
     groupbox_lag = gui.Groupbox(window,"Lagsync",20,230,200,200)
     lagsync_box = gui.Combobox(groupbox_lag,"lagsync_type","Lagsync Type","Off","Custom")
     delay_amount = gui.Slider(groupbox_lag,"delay_amount","Delay Amount (ticks)",1,1,64)
     
+    -- Lagsync builder gui groupbox
     ls_custom = gui.Groupbox(window,"Lagsync Builder",20,400,200,200)
     ls_custom_yaw_1 = gui.Slider(ls_custom,"yawoffset1","Yaw Offset 1",0,-180,180)
     ls_custom_yaw_2 = gui.Slider(ls_custom,"yawoffset2","Yaw Offset 2",0,-180,180)
     ls_custom_fake_1 = gui.Slider(ls_custom,"fakeoffset1","Fake Amount 1",0,0,100)
     ls_custom_fake_2 = gui.Slider(ls_custom,"fakeoffset2","Fake Amount 2",0,0,100)
 
+    -- Fakelag gui groupbox
     fl_groupbox = gui.Groupbox( window, "Fakelag", 240, 15, 200, 200 )
     fl_enable = gui.Checkbox( fl_groupbox, "enable_fakelag", "Enable", false )
     fl_base_amount = gui.Slider( fl_groupbox, "fakelag_value", "Base Amount", 3 , 3, 17)
     fl_spike_amount = gui.Slider(fl_groupbox, "fakelag_spike", "Spike Amount", 3, 3, 17)
     fl_delay = gui.Slider( fl_groupbox, "fl_delay", "Hold Time (S)",0, 0, 1, 0.01)
    
+    -- Doubletap gui groupbox
     dt_groupbox = gui.Groupbox( window, "Double Tap", 240, 260, 200, 200 )
     dt_settings_1 = gui.Combobox( dt_groupbox, "dt_switch_1", "DT Base Setting", "Off", "Shift" , "Rapid")
     dt_setting_2 = gui.Combobox( dt_groupbox, "dt_switch_2", "DT Key Setting", "Off", "Shift" , "Rapid")
     dt_keybox = gui.Keybox( dt_groupbox, "dt_key", "Doubletap Switch Key", 0)
     
+    -- sets window to open with the same key as the cheat
     window:SetOpenKey(45)
 
 end
-
+-- Allows script to control the antiaim settings in the cheat.
 function YawHandler()
 
+    -- Converts the 1 to 180 and -1 to -180 degrees yaw value to -180 to 0 to 180
     if yaw_amount:GetValue() > 0 then
         gui.SetValue("rbot.antiaim.base",yaw_amount:GetValue()-180);
     else
         gui.SetValue("rbot.antiaim.base",yaw_amount:GetValue()+180);
     end
     
+    -- Calculates the fake value into a percentage and contains the inverter calculations
     if not inverted then
         gui.SetValue("rbot.antiaim.base.lby",fake_amount:GetValue()/100*60*-1)
         gui.SetValue("rbot.antiaim.base.rotation",fake_amount:GetValue()/100*58)
@@ -54,6 +63,7 @@ function YawHandler()
 
 end
 
+-- Inverter key
 function KeyPressHandler()
    
     if invert_key:GetValue() ~= 0 then   
@@ -64,12 +74,15 @@ function KeyPressHandler()
 
 end
 
+-- Main code for lagsync
 function lagsync(cmd)
   
+    -- Sets switch to change every x amount of tick defined by the user
     if cmd.tick_count % delay_amount:GetValue() == 0 then
         switch = not switch;
     end
   
+    -- Switches between the two values
     if lagsync_box:GetValue() == 1 then  
         if switch then
             yaw_amount:SetValue(ls_custom_yaw_1:GetValue())
@@ -82,6 +95,7 @@ function lagsync(cmd)
         
 end
 
+-- Tick timer
 local function onfire( event )
     
     local timer = timer or {}
@@ -102,10 +116,10 @@ local function onfire( event )
 
     end
 	
-    function timer.Simple(name, delay, func)
+    function timer.shot(name, delay, func)
         
         if not timer.Exists(name) then
-	    	table.insert(timers, {type = "Simple", name = name, func = func, lastTime = globals.CurTime() + delay})
+	    	table.insert(timers, {type = "shot", name = name, func = func, lastTime = globals.CurTime() + delay})
         end
         
     end
@@ -114,7 +128,7 @@ local function onfire( event )
         
         for k, v in pairs(timers or {}) do
 		    if not v.pause then
-			    if v.type == "Simple" then
+			    if v.type == "shot" then
 			    	if globals.CurTime() >= v.lastTime then
 				    	v.func()
 				    	table.remove(timers, k)
@@ -127,11 +141,12 @@ local function onfire( event )
 
     callbacks.Register( "Draw", "timerTick", timer.Tick);
 
+    -- Sets fakelag to spike value for set duration
     if fl_enable:GetValue() == true then
 	    if uid == local_player_index then
 			if event_name == "weapon_fire" then
 				gui.SetValue( "misc.fakelag.factor", fl_spike_amount:GetValue())
-				timer.Simple("delay", fl_delay:GetValue(), function()gui.SetValue( "misc.fakelag.factor", fl_base_amount:GetValue())end)
+				timer.shot("delay", fl_delay:GetValue(), function()gui.SetValue( "misc.fakelag.factor", fl_base_amount:GetValue())end)
 			end
 		end
     end 
@@ -139,14 +154,16 @@ local function onfire( event )
 end
 
 
-
+-- Switches between doubletap values for weapons that support it
 local function dt_key_switch()
     
+    -- Doubletap values
     local dt_key = gui.GetValue("aawindow.dt_key")
     local dt_set_1 = gui.GetValue("aawindow.dt_switch_1")
     local dt_set_2 = gui.GetValue("aawindow.dt_switch_2")
 
     if input.IsButtonDown(dt_key) then
+        -- When the key is held, the doubletap value is set to the user defined value
         gui.SetValue("rbot.accuracy.weapon.pistol.doublefire", dt_set_2)
         gui.SetValue("rbot.accuracy.weapon.hpistol.doublefire", dt_set_2)
         gui.SetValue("rbot.accuracy.weapon.smg.doublefire", dt_set_2)
@@ -156,6 +173,7 @@ local function dt_key_switch()
         gui.SetValue("rbot.accuracy.weapon.lmg.doublefire", dt_set_2)
     
     else
+        -- This sets the doubletap to the first value
         gui.SetValue("rbot.accuracy.weapon.pistol.doublefire", dt_set_1)
         gui.SetValue("rbot.accuracy.weapon.hpistol.doublefire", dt_set_1)
         gui.SetValue("rbot.accuracy.weapon.smg.doublefire", dt_set_1)
@@ -167,6 +185,8 @@ local function dt_key_switch()
 
 end
 
+
+-- Allocating weapon IDs to weapon groups
 local weapon_dt = {
     [1] = "hpistol",
     [2] = "pistol",
@@ -198,6 +218,7 @@ local weapon_dt = {
     [63] = "pistol",
 }
 
+
 local current_dt = false
 local history_dt = false
 local local_player = nil
@@ -206,13 +227,18 @@ local player_weapon = nil
 
 function dt_movement_fix()
     
+    -- Gets the information of the player and their current doubletap value
     local local_player = entities.GetLocalPlayer()
     local player_weapon = local_player:GetWeaponID()
     local current_dt = (weapon_dt[player_weapon] ~= nil and gui.GetValue("rbot.accuracy.weapon." .. weapon_dt[player_weapon] .. ".doublefire") ~= 0 or false)
     
-    if current_dt == true then
+    if current_dt == true then 
         history_dt = true
+
+    -- This allows the program to see when doubletap is togged from on to off.
     elseif current_dt == false and history_dt == true then
+       
+        -- Turns fakelag on only when the players velocity is 0
         if math.sqrt(local_player:GetPropFloat("localdata", "m_vecVelocity[0]")^2 + local_player:GetPropFloat("localdata", "m_vecVelocity[1]")^2) == 0 then
             history_dt = false
         end
